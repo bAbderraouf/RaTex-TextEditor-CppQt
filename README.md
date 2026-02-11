@@ -3,7 +3,7 @@
 **RaTex** is a personal **C++/Qt project** demonstrating GUI design, rich text editing, and advanced user interaction.
 
 ## Screenshot
-![RaTex Screenshoot](images/RaTex.gif)
+![RaTex Screenshoot](images/ratex.gif)
 
 ## Key Features
 - Custom text editor with **dynamic transparency** and modular GUI
