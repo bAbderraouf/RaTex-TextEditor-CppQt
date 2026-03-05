@@ -22,6 +22,7 @@ This project was developed to strengthen my expertise in Qt Widgets, document st
 -  Zoom in / zoom out
 -  Open / Save (TXT)
 -  Export to PDF (A3 / A4 support, formatting preserved)
+-  Export to Html file type.
 -  Unsaved changes detection with confirmation dialog
 -  Clipboard support (copy / cut / paste)
 
