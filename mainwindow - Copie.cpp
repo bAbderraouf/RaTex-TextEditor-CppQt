@@ -96,7 +96,22 @@ void MainWindow::setupSignalSlotsConnections()
     closeTab();
 }
 
-
+//---------------------------------------------------
+//             update TextEdit WrapMode (settings)
+//---------------------------------------------------
+void MainWindow::updateTextEditWrapMode()
+{
+    if(noWrapLines)
+    {
+        // pas de saut de lignes automatique
+        textEditList[CurrentTabIdx]->setLineWrapMode(QTextEdit::NoWrap);
+    }
+    else
+    {
+        //saut automatique de lignes
+        textEditList[CurrentTabIdx]->setLineWrapMode(QTextEdit::WidgetWidth);
+    }
+}
 
 //---------------------------------------------------
 //          updatePdfExportFormatSetings
@@ -104,13 +119,13 @@ void MainWindow::setupSignalSlotsConnections()
 void MainWindow::updatePdfExportFormatSetings(QPrinter &printer)
 {
     // apply pdfExportFormat from settings
-    if(CurrentSettings.PdfExportFormat == "A1")
+    if(pdfExportForamt == "A1")
         printer.setPageSize(QPageSize(QPageSize::A1));
-    else if(CurrentSettings.PdfExportFormat == "A2")
+    else if(pdfExportForamt == "A2")
         printer.setPageSize(QPageSize(QPageSize::A2));
-    else if(CurrentSettings.PdfExportFormat == "A3")
+    else if(pdfExportForamt == "A3")
         printer.setPageSize(QPageSize(QPageSize::A3));
-    else if(CurrentSettings.PdfExportFormat == "A4")
+    else if(pdfExportForamt == "A4")
         printer.setPageSize(QPageSize(QPageSize::A4));
 }
 
@@ -158,7 +173,7 @@ void MainWindow::saveFileAction()
             {
 
                 // capture text from CurrentTextEdit
-                QString text = DocList[CurrentTabIdx]->GetTextEdit()->toPlainText();
+                QString text = textEditList[CurrentTabIdx]->toPlainText();
 
                 // get output file name
                 QString CurrentDocName = "C:/Users/Hp_7/Desktop/Ratex/" + GetCurrentTabName() + ".txt";
@@ -179,7 +194,7 @@ void MainWindow::saveAsPdfAction()
             {
 
                 // capture text from CurrentTextEdit
-                QString text = DocList[CurrentTabIdx]->GetTextEdit()->toHtml(); // toPlaintext() : text pure
+                QString text = textEditList[CurrentTabIdx]->toHtml(); // toPlaintext() : text pure
 
                 // get output file name
                 QString CurrentDocName = "C:/Users/Hp_7/Desktop/Ratex/" + GetCurrentTabName() + ".pdf";
@@ -197,7 +212,7 @@ void MainWindow::saveAsHtmlAction()
             {
 
                 // capture text from CurrentTextEdit
-                QString text = DocList[CurrentTabIdx]->GetTextEdit()->toHtml(); // toPlaintext() : text pure
+                QString text = textEditList[CurrentTabIdx]->toHtml(); // toPlaintext() : text pure
 
                 // get output file name
                 QString CurrentDocName = "C:/Users/Hp_7/Desktop/Ratex/" + GetCurrentTabName() + ".html";
@@ -223,7 +238,7 @@ void MainWindow::quitAction()
 void MainWindow::copyAction()
 {
     connect(ui->actionCopy, &QAction::triggered, [=](){
-          DocList[CurrentTabIdx]->GetTextEdit()->copy();  });
+           textEditList[CurrentTabIdx]->copy();  });
 }
 
 //---------------------------------------------------
@@ -232,7 +247,7 @@ void MainWindow::copyAction()
 void MainWindow::cutAction()
 {
     connect(ui->actionCut, &QAction::triggered, [=](){
-        DocList[CurrentTabIdx]->GetTextEdit()->cut();  });
+        textEditList[CurrentTabIdx]->cut();  });
 }
 
 //---------------------------------------------------
@@ -241,7 +256,7 @@ void MainWindow::cutAction()
 void MainWindow::pasteAction()
 {
     connect(ui->actionPaste, &QAction::triggered, [=](){
-        DocList[CurrentTabIdx]->GetTextEdit()->paste();  });
+        textEditList[CurrentTabIdx]->paste();  });
 
 }
 
@@ -251,7 +266,7 @@ void MainWindow::pasteAction()
 void MainWindow::undoAction()
 {
     connect(ui->actionUndo, &QAction::triggered, [=](){
-        DocList[CurrentTabIdx]->GetTextEdit()->undo();  });
+        textEditList[CurrentTabIdx]->undo();  });
 
 }
 
@@ -261,7 +276,7 @@ void MainWindow::undoAction()
 void MainWindow::redoAction()
 {
     connect(ui->actionRedo, &QAction::triggered, [=](){
-        DocList[CurrentTabIdx]->GetTextEdit()->redo();  });
+        textEditList[CurrentTabIdx]->redo();  });
 }
 
 //---------------------------------------------------
@@ -282,7 +297,7 @@ void MainWindow::aboutAction()
 void MainWindow::selectAllAction()
 {
     connect(ui->actionSelectAll, &QAction::triggered, [=](){
-        DocList[CurrentTabIdx]->GetTextEdit()->selectAll();  });
+        textEditList[CurrentTabIdx]->selectAll();  });
 }
 
 //---------------------------------------------------
@@ -292,34 +307,25 @@ void MainWindow::settingsAction()
 {
     connect(ui->settingsAction, &QAction::triggered, [=]()
     {
-        // get current tab(doc) settings
-        //---------------------------
-        SettingsInfoDialog::Settings CurrentDocSettings = DocList[CurrentTabIdx]->GetSettings();
-        settings->SetSettings(CurrentDocSettings);
+
         int res = settings->exec();
 
         // accepted setting
         if(res == QDialog::Accepted)
         {
-            // get new setings selection
-            //-------------
+            pdfExportForamt = settings->getPdfExportForamt();
+            noWrapLines = settings->getNoWrapLines();
+            opacity = settings->getOpacity();
+            bagroundColorInTranparentMode = settings->getBagroundColorInTranparentMode();
+            bagroundColor = settings->getBagroundColor();
 
-            CurrentSettings = {
+            // update CurrentTextEdit settings
+            updateTextEditWrapMode();
 
-                settings->getPdfExportForamt(),
-                settings->getNoWrapLines(),
-                settings->getOpacity(),
-                settings->getBagroundColorInTranparentMode(),
-                settings->getBagroundColor()
-            };
+            //update opacity
+            updateWindowOpacity();
 
-
-            // set settings to current document
-            //------------------
-            SetCurrentDocumentSettings(CurrentSettings);
-
-            UpdteCurrentDocumentSettings();
-
+            updateCurrentEditStyle();
 
         }
     });
@@ -337,18 +343,18 @@ void MainWindow::transparentAction()
 
             //this->setAttribute(Qt::WA_TranslucentBackground);//transparent window
             this->setWindowFlags( Qt::Window);
-            this->setWindowOpacity(DocList[CurrentTabIdx]->GetOpacity()); // Réglage global de l’opacité
+            this->setWindowOpacity(opacity); // Réglage global de l’opacité
 
 
             // Rendre le fond du texte transparent
 
-            QString nextStyle = QString("background: %1; color: darkgray; border: none; ").arg( DocList[CurrentTabIdx]->GetBgColorInTransparentMode().name());
+            QString nextStyle = QString("background: %1; color: darkgray; border: none; ").arg(bagroundColorInTranparentMode.name());
 
-            DocList[CurrentTabIdx]->SetStyleSheet(nextStyle);
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle);
 
             // adapte text style according to new background (on conserve le background)
-            DocList[CurrentTabIdx]->SetStyleSheet(nextStyle + GetCursorColorName());
-            DocList[CurrentTabIdx]->SetTextColor(GetTextColor());
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle + GetCursorColorName());
+            textEditList[CurrentTabIdx]->setTextColor(GetTextColor());
 
 
             this->hide();
@@ -365,14 +371,14 @@ void MainWindow::transparentAction()
             // Restaure un style normal pour le QTextEdit
 
             //QString nextStyle = "background: white; color: black; border: 1px solid gray;" ;
-            QString nextStyle = QString("background: %1; color: black; border: none; ").arg(DocList[CurrentTabIdx]->GetBgColor().name());
+            QString nextStyle = QString("background: %1; color: black; border: none; ").arg(bagroundColor.name());
 
 
-            DocList[CurrentTabIdx]->SetStyleSheet(nextStyle);
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle);
 
             // adapte text style according to new background (on conserve le background)
-            DocList[CurrentTabIdx]->SetStyleSheet(nextStyle + GetCursorColorName());
-            DocList[CurrentTabIdx]->SetTextColor(GetTextColor());
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle + GetCursorColorName());
+            textEditList[CurrentTabIdx]->setTextColor(GetTextColor());
 
 
             this->hide();
@@ -413,7 +419,7 @@ void MainWindow::fontAction()
     {
         bool ok = false;
         // select a font
-        QFont  textEditFont = QFontDialog::getFont(&ok, QFont(DocList[CurrentTabIdx]->GetFont()));
+        QFont  textEditFont = QFontDialog::getFont(&ok, QFont("Select your font"));
 
         // apply font to text format
         QTextCharFormat format;
@@ -423,20 +429,19 @@ void MainWindow::fontAction()
         if(ok)
         {
             // if any text selected
-            if(DocList[CurrentTabIdx]->GetTextEdit()->textCursor().hasSelection())
+            if(textEditList[CurrentTabIdx]->textCursor().hasSelection())
             {
                 // apply font to selected text
 
                 // get cursor position
-                QTextCursor cursor = DocList[CurrentTabIdx]->GetTextEdit()->textCursor();
+                QTextCursor cursor = textEditList[CurrentTabIdx]->textCursor();
 
                 cursor.mergeCharFormat(format);
             }
             else
             {
                 // apply font to next characters
-                //DocList[CurrentTabIdx]->GetTextEdit()->mergeCurrentCharFormat(format); //<****ToDo (check if font is applied)
-                DocList[CurrentTabIdx]->SetFont(textEditFont);
+                textEditList[CurrentTabIdx]->mergeCurrentCharFormat(format);
             }
         }
     });
@@ -447,16 +452,16 @@ void MainWindow::textColorAction()
     connect(ui->actionColor , &QAction::triggered , [=]()
             {
                // capture color
-               // QPalette pal = DocList[CurrentTabIdx]->GetTextColor();
-                QColor initialTextColor = DocList[CurrentTabIdx]->GetTextColor();//pal.color(QPalette::Text);
+                QPalette pal = textEditList[CurrentTabIdx]->palette();
+                QColor initialTextColor = pal.color(QPalette::Text);
 
                 //select color
-                QColor const selectedColor = QColorDialog::getColor(initialTextColor,this, "Select text color");
+                QColor const selectedColor = QColorDialog::getColor(initialTextColor,this, "Select a color");
 
                 if(selectedColor.isValid())
                 {
                     //set new text color
-                    DocList[CurrentTabIdx]->SetTextColor(selectedColor);  //<****Todo check if color is applied
+                    textEditList[CurrentTabIdx]->setTextColor(selectedColor);
                 }
             });
 }
@@ -466,7 +471,7 @@ void MainWindow::textColorAction()
 //---------------------------------------------------
 void MainWindow::cursorPositionChanged()
 {
-    connect(DocList[CurrentTabIdx]->GetTextEdit(), &QTextEdit::cursorPositionChanged, [=](){
+    connect(textEditList[CurrentTabIdx], &QTextEdit::cursorPositionChanged, [=](){
         updateCursorPosition();
     } );
 
@@ -477,9 +482,9 @@ void MainWindow::cursorPositionChanged()
 //---------------------------------------------------
 void MainWindow::updateCursorPosition()
 {
-    if(CurrentTabIdx != -1 && CurrentTabIdx < DocList.size())
+    if(CurrentTabIdx != -1 && CurrentTabIdx < textEditList.size())
     {
-        cursor = DocList[CurrentTabIdx]->GetTextEdit()->textCursor();  //<****Todo check if it works
+        cursor = textEditList[CurrentTabIdx]->textCursor();
         idxLine = cursor.blockNumber() + 1;
         idxColumn = cursor.positionInBlock() + 1; // starts from 0
 
@@ -491,69 +496,37 @@ void MainWindow::updateCursorPosition()
 void MainWindow::updateWindowOpacity()
 {
     if(flag_transparent)
-    {
-        DocList[CurrentTabIdx]->SetTransparent(true);
-        this->setWindowOpacity(DocList[CurrentTabIdx]->GetOpacity());
-    }
-
+        this->setWindowOpacity(opacity);
 }
 
 
 void MainWindow::updateCurrentEditStyle()
 {
+        if(flag_transparent){
 
-    if(flag_transparent){
+            // Rendre le fond du texte transparent
 
-        // Rendre le fond du texte transparent
+            QString nextStyle = QString("background: %1; color: darkgray; border: none; ").arg(bagroundColorInTranparentMode.name());
 
-        QString nextStyle = QString("background: %1; color: darkgray; border: none; ").arg(DocList[CurrentTabIdx]->GetBgColorInTransparentMode().name());
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle);
 
-        DocList[CurrentTabIdx]->SetStyleSheet(nextStyle);
+            // adapte text style according to new background (on conserve le background)
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle + GetCursorColorName());
+            textEditList[CurrentTabIdx]->setTextColor(GetTextColor());
+        }
+        else {
 
-        // adapte text style according to new background (on conserve le background)
-        DocList[CurrentTabIdx]->SetStyleSheet(nextStyle + GetCursorColorName());
-        DocList[CurrentTabIdx]->SetTextColor(GetTextColor());
-    }
-    else {
-
-        //QString nextStyle = "background: white; color: black; border: 1px solid gray;" ;
-        QString nextStyle = QString("background: %1; color: black; border: none; ").arg(DocList[CurrentTabIdx]->GetBgColor().name());
-
-
-        DocList[CurrentTabIdx]->SetStyleSheet(nextStyle);
-
-        // adapte text style according to new background (on conserve le background)
-        DocList[CurrentTabIdx]->SetStyleSheet(nextStyle + GetCursorColorName());
-        DocList[CurrentTabIdx]->SetTextColor(GetTextColor());
-
-    }
-
-}
+            //QString nextStyle = "background: white; color: black; border: 1px solid gray;" ;
+            QString nextStyle = QString("background: %1; color: black; border: none; ").arg(bagroundColor.name());
 
 
-//---------------------------------------------------
-//             update current TextEdit settings
-//---------------------------------------------------
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle);
 
-void MainWindow::UpdteCurrentDocumentSettings()
-{
-    updateWindowOpacity();
+            // adapte text style according to new background (on conserve le background)
+            textEditList[CurrentTabIdx]->setStyleSheet(nextStyle + GetCursorColorName());
+            textEditList[CurrentTabIdx]->setTextColor(GetTextColor());
 
-    updateCurrentEditStyle();
-}
-
-void MainWindow::SetCurrentDocumentSettings(SettingsInfoDialog::Settings CurrentSetings_)
-{
-    // set settings
-    //------------------
-
-    DocList[CurrentTabIdx]->SetPdfExportFormat(CurrentSetings_.PdfExportFormat);
-    DocList[CurrentTabIdx]->SetBgColorInTransparentMode(CurrentSetings_.BgColorInTranparentMode);
-    DocList[CurrentTabIdx]->SetBgColor(CurrentSetings_.BgColor);
-    DocList[CurrentTabIdx]->SetOpacity(CurrentSetings_.Opacity);
-
-    bool IsWrapLines = ! CurrentSetings_.NoWrapLines;
-    DocList[CurrentTabIdx]->SetWraplines(IsWrapLines);   // true : saut de ligne automatique, false : pas de sauts
+        }
 }
 
 //---------------------------------------------------
@@ -594,21 +567,21 @@ void MainWindow::NewTab(QString FileName, enInputFileType FileType,  QString tex
 {
 
     //1- create a new tab
+    QTextEdit * NewEditor = new QTextEdit;
+    NewEditor->setFont(defaultFont);
 
-    // new document
-    CurrentTabIdx = DocList.size(); // last document + 1
-    document *NewDoc = new document( defaultStyleSheet , defaultFont, CurrentTabIdx);
-    DocList.push_back(NewDoc);
+    textEditList.push_back(NewEditor);
+    CurrentTabIdx=textEditList.size()-1;
 
     if(FileType == enInputFileType::TxtInput)
-        DocList[CurrentTabIdx]->GetTextEdit()->setText(text);  //<***Todo check txt if all is good
+        textEditList[CurrentTabIdx]->setText(text);
     if(FileType == enInputFileType::HtmlInput)
-        DocList[CurrentTabIdx]->GetTextEdit()->setHtml(text);
+        textEditList[CurrentTabIdx]->setHtml(text);
 
     // get new/open tab name
    // QString NewTabName = GetNewTabName(FileName); //<<****ToDo
 
-    TabWidget->addTab(DocList[CurrentTabIdx]->GetTextEdit() , FileName);
+    TabWidget->addTab(NewEditor , FileName);
     TabWidget->setCurrentIndex(CurrentTabIdx);
     TabWidget->setStyleSheet("background-color: white;");
 
@@ -696,7 +669,7 @@ void MainWindow::saveTextToFile(QString const &filePath, QString const & text , 
             // html file
             QTextStream outStream(&outputFile);
             outStream << text;
-            //outStream << DocList[CurrentTabIdx]->GetTextEdit()->toHtml();
+            //outStream << textEditList[CurrentTabIdx]->toHtml();
             outputFile.close();
         }
         else
@@ -731,35 +704,12 @@ QString MainWindow::readContentFromTextFile(QString const &filePath)
 
 void MainWindow::init()
 {
-    // init flags
-    flag_transparent = false;
-    flag_showToolBar= true;
-    flag_showStatusBar = true;
-    flag_showMenuBar = true;
 
-    //------------------------
-    // Settings info dialog
-    //------------------------
-    // new settings QDialog form
-    settings = new SettingsInfoDialog(this);
-
-    // get default settings
-    CurrentSettings =  SettingsInfoDialog::DefaultValues;
-
-
-
-    //------------------------
     // default style
     defaultStyleSheet       = this->styleSheet();
     transparentStyleSheet   = "";
 
-    defaultFont = QFont("Consolas", 12);
-    defaultFont.setStyleHint(QFont::Monospace);
-    defaultFont.setFixedPitch(true);
-
-    //------------------------
     // layout central
-    //------------------------
     QVBoxLayout *Layout = new QVBoxLayout(ui->centralwidget);
     Layout->setContentsMargins(0,0,0,0); // no margins
     Layout->setSpacing(0); // no space between widgets
@@ -769,18 +719,23 @@ void MainWindow::init()
     ParentCentralWidget->setLayout(Layout);
     Layout->addWidget(ParentCentralWidget);
 
+
+    defaultFont = QFont("Consolas", 12);
+    defaultFont.setStyleHint(QFont::Monospace);
+    defaultFont.setFixedPitch(true);
+
     // new tab and new text editor
     CurrentTabIdx = 0;
+    QTextEdit * editor = new QTextEdit;
+    editor->setFont(defaultFont);
+    editor->setAcceptRichText(true); // pour recupere des copies avec couleur
+    textEditList.push_back(editor);
 
-    //------------------------
     // new document
-    //------------------------
     document *NewDoc = new document( defaultStyleSheet , defaultFont, CurrentTabIdx);
     DocList.push_back(NewDoc);
 
-    //------------------------
     // tab widgets
-    //------------------------
     TabWidget = new QTabWidget(ParentCentralWidget);
     TabWidget->setTabsClosable(true);
     TabWidget->setTabShape(QTabWidget::TabShape::Triangular);
@@ -791,7 +746,6 @@ void MainWindow::init()
     TabWidget->addTab(NewDoc->GetTextEdit(), "New File");
     TabWidget->setCurrentWidget(NewDoc->GetTextEdit());//(editor);
 
-    //------------------------
 
     // fenetre avec bg transparent
     this->setAttribute(Qt::WA_TranslucentBackground);
@@ -812,11 +766,28 @@ void MainWindow::init()
                                 QTabBar::tab { background-color: white; }  /* chaque onglet */
                              )");
 
-    // set sttings to current document
-    SetCurrentDocumentSettings(CurrentSettings);
-    UpdteCurrentDocumentSettings();
+
+    // cursor stylesheet
+    //this->setStyleSheet(R"(  QTextEdit { caret-color: black;   /* curseur noir sur fond blanc */
+                      //  } )");
+
+
+
 
     ui->toolBar->setMovable(true);
+
+    // new settings QDialog form
+    settings = new SettingsInfoDialog(this);
+
+    // get default settings
+    pdfExportForamt =   SettingsInfoDialog::DefaultValues.PdfExportFormat;  //settings->getPdfExportForamt();
+    noWrapLines     =   SettingsInfoDialog::DefaultValues.NoWrapLines;      //settings->getNoWrapLines();
+    opacity         =   SettingsInfoDialog::DefaultValues.Opacity;          //settings->getOpacity();
+    bagroundColor   =   SettingsInfoDialog::DefaultValues.BgColor;          //settings->getBagroundColor();
+    bagroundColorInTranparentMode =  SettingsInfoDialog::DefaultValues.BgColorInTranparentMode;     //settings->getBagroundColorInTranparentMode();
+
+    updateTextEditWrapMode();
+
 
     // size hint
     this->sizeHint();
@@ -824,12 +795,20 @@ void MainWindow::init()
     // cursor position
     updateCursorPosition();
 
+
+    flag_transparent = false;
+    flag_showToolBar= true;
+    flag_showStatusBar = true;
+    flag_showMenuBar = true;
+
+
+
 }
 
 
 QString MainWindow::GetCursorColorName()
 {
-    QColor bg = DocList[CurrentTabIdx]->GetTextEdit()->palette().color(QPalette::Base);
+    QColor bg = textEditList[CurrentTabIdx]->palette().color(QPalette::Base);
 
        // Détecter si le fond est sombre ou clair
        QColor caretColor = (bg.lightness() < 128) ? Qt::white : Qt::black; // contraste
@@ -839,15 +818,17 @@ QString MainWindow::GetCursorColorName()
 
 QColor MainWindow::GetTextColor()
 {
-    QColor bg ;//DocList[CurrentTabIdx]->GetTextEdit()->palette().color(QPalette::Base);
+    QColor bg ;//textEditList[CurrentTabIdx]->palette().color(QPalette::Base);
 
    if(flag_transparent)
-       bg = DocList[CurrentTabIdx]->GetBgColorInTransparentMode();
+       bg = bagroundColorInTranparentMode;
    else
-       bg = DocList[CurrentTabIdx]->GetBgColor();
+       bg = bagroundColor;
 
    // Détecter si le fond est sombre ou clair
    QColor textColor  = (bg.lightness() < 128) ?  QColor(Qt::darkGray) : QColor(Qt::darkGray); // même logique pour le texte
+
+   qDebug() << "text color : " << textColor << "transparent mode ? : " << flag_transparent;
 
    return textColor; //QString("color: %1;").arg(textColor.name());
 }
@@ -1009,13 +990,13 @@ void MainWindow::on_removeActionZoomOutFromTollbar_toggled(bool  isSelected)
 
 void MainWindow::on_actionzoomIn_triggered()
 {
-    DocList[CurrentTabIdx]->GetTextEdit()->zoomIn(); //<***Todo check it
+    textEditList[CurrentTabIdx]->zoomIn();
 }
 
 
 void MainWindow::on_actionzoom_out_triggered()
 {
-    DocList[CurrentTabIdx]->GetTextEdit()->zoomOut();
+    textEditList[CurrentTabIdx]->zoomOut();
 }
 
 
@@ -1027,8 +1008,6 @@ void MainWindow::on_TabWidget_currentChanged(int index)
     // 2- update cursor position
     updateCursorPosition();
 
-    // 3- update current tab settings
-    UpdteCurrentDocumentSettings();
 }
 
 void MainWindow::on_TabWidget_TabCloseRequested(int index)
@@ -1040,12 +1019,12 @@ void MainWindow::on_TabWidget_TabCloseRequested(int index)
      msgBox.setDefaultButton(QMessageBox::No);
 
 
-    if (index >= 0 && index < DocList.size()) // security check
+    if (index >= 0 && index < textEditList.size()) // security check
     {
 
 
         // get textEdit widget pointer index
-        document *DocToDelete = DocList[index];
+        QTextEdit *EditorToDelete = textEditList[index];
 
         //ask to save file
         int ret = msgBox.exec();
@@ -1057,11 +1036,11 @@ void MainWindow::on_TabWidget_TabCloseRequested(int index)
             //1- remove tab
             TabWidget->removeTab(index);
 
-            //2- free memory (text edit)
-            DocToDelete->DeleteTextEdit();
+            //2- remove corresponding textEdit
+            textEditList.removeAt(index);
 
-            //3- remove corresponding document
-            DocList.removeAt(index);
+            //3- free memory (text edit)
+            delete EditorToDelete;
         }
 
     }
@@ -1072,24 +1051,23 @@ void MainWindow::on_TabWidget_TabCloseRequested(int index)
 void MainWindow::on_SettingsAccepted()  // redandance  avec settings-> exec()
 {
 
-    // get settings
-    //---------------
-    CurrentSettings = {
+    pdfExportForamt = settings->getPdfExportForamt() ;
 
-        settings->getPdfExportForamt(),
-        settings->getNoWrapLines(),
-        settings->getOpacity(),
-        settings->getBagroundColorInTranparentMode(),
-        settings->getBagroundColor()
-    };
+    noWrapLines =  settings->getNoWrapLines() ;
 
+    opacity = settings->getOpacity();
 
+    bagroundColorInTranparentMode = settings->getBagroundColorInTranparentMode();
 
-    // set settings to current document
+    bagroundColor = settings->getBagroundColor();
+
+    // update settings
     //------------------
-    SetCurrentDocumentSettings(CurrentSettings);
+    // update CurrentTextEdit settings
+    updateTextEditWrapMode();
 
+    //update opacity
+    updateWindowOpacity();
 
-    UpdteCurrentDocumentSettings();
-
+    updateCurrentEditStyle();
 }

@@ -13,22 +13,31 @@ SettingsInfoDialog::SettingsInfoDialog(QWidget *parent)
     ui->pdfFormatComboBox->addItem("A3");
     ui->pdfFormatComboBox->addItem("A4");
     ui->pdfFormatComboBox->setEditable(false);
-    ui->opacityDoubleSpinBox->setValue(0.5);
+
 
     // default values
-    ui->pdfFormatComboBox->setCurrentText("A4");
-    ui->noWrapCheckbox->setChecked(true);
-    bagroundColorInTranparentMode = Qt::black;
+    ui->pdfFormatComboBox->setCurrentText(DefaultValues.PdfExportFormat);
+    ui->noWrapCheckbox->setChecked(DefaultValues.NoWrapLines);
+    bagroundColorInTranparentMode = DefaultValues.BgColorInTranparentMode;
+    bagroundColor = DefaultValues.BgColor;
+    ui->opacityDoubleSpinBox->setValue(DefaultValues.Opacity);
 
     // init variables
     pdfExportForamt = ui->pdfFormatComboBox->currentText();
-    noWrapLines = ui->noWrapCheckbox->isChecked();
+    noWrapLines     = ui->noWrapCheckbox->isChecked();
+
+    //emettre le signal accept settings
+    // Quand le bouton est cliqué, on émet notre signal acceptClicked
+      connect(ui->okPushButton, &QPushButton::clicked, this, [=](){
+            emit acceptSettingsClicked(); // <-- c’est ici qu’on émet le signal
+        });
 }
 
 SettingsInfoDialog::~SettingsInfoDialog()
 {
     delete ui;
 }
+
 
 QString SettingsInfoDialog::getPdfExportForamt()
 {
@@ -52,6 +61,23 @@ QColor SettingsInfoDialog::getBagroundColorInTranparentMode()
     return bagroundColorInTranparentMode;
 }
 
+QColor SettingsInfoDialog::getBagroundColor()
+{
+    return bagroundColor;
+}
+
+void SettingsInfoDialog::SetSettings(Settings CurrentDocSettings)
+{
+    this->pdfExportForamt = CurrentDocSettings.PdfExportFormat;
+    this->noWrapLines = CurrentDocSettings.NoWrapLines;
+    this->bagroundColor = CurrentDocSettings.BgColor;
+    this->bagroundColorInTranparentMode = CurrentDocSettings.BgColorInTranparentMode;
+
+    this->ui->opacityDoubleSpinBox->setValue(CurrentDocSettings.Opacity);
+    this->ui->pdfFormatComboBox->setCurrentText(pdfExportForamt);
+    this->ui->noWrapCheckbox->setChecked(noWrapLines);
+}
+
 
 void SettingsInfoDialog::on_cancelPushButton_2_clicked()
 {
@@ -71,7 +97,7 @@ void SettingsInfoDialog::on_okPushButton_clicked()
 void SettingsInfoDialog::on_pushButton_clicked()
 {
     //select color
-    QColor const selectedColor = QColorDialog::getColor(Qt::black,this, "Select a color");
+    QColor const selectedColor = QColorDialog::getColor(bagroundColorInTranparentMode,this, "Select a color");
 
     qDebug() << "selected color " << selectedColor;
 
@@ -82,4 +108,28 @@ void SettingsInfoDialog::on_pushButton_clicked()
     }
 
 }
+
+void SettingsInfoDialog::on_selectBgColor_clicked()
+{
+    //select color
+    QColor const selectedColor = QColorDialog::getColor(bagroundColor,this, "Select a color");
+
+    qDebug() << "selected color " << selectedColor;
+
+    if(selectedColor.isValid())
+    {
+        //set new color
+        bagroundColor = selectedColor;
+    }
+
+}
+
+// default values
+SettingsInfoDialog::Settings   SettingsInfoDialog::DefaultValues = {
+    "A4",       // pdfExportFormat
+    false,      // no wrap lines
+    0.5f,       // opacity
+    Qt::black,  // bg color transparent mode
+    Qt::white,  // bg color
+};
 

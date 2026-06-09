@@ -24,6 +24,8 @@
         <file>images/savf.png</file>
         <file>images/zoomIn.png</file>
         <file>images/zoomOut.png</file>
+        <file>images/NewFile.png</file>
+        <file>images/html.png</file>
     </qresource>
     <qresource prefix="/new/prefix1"/>
 </RCC>

@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>576</width>
+    <width>677</width>
     <height>328</height>
    </rect>
   </property>
@@ -14,25 +14,14 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout">
-    <item>
-     <widget class="QTextEdit" name="textEdit">
-      <property name="verticalScrollBarPolicy">
-       <enum>Qt::ScrollBarPolicy::ScrollBarAsNeeded</enum>
-      </property>
-      <property name="sizeAdjustPolicy">
-       <enum>QAbstractScrollArea::SizeAdjustPolicy::AdjustToContents</enum>
-      </property>
-     </widget>
-    </item>
-   </layout>
+   <layout class="QVBoxLayout" name="verticalLayout"/>
   </widget>
   <widget class="QMenuBar" name="menubar">
    <property name="geometry">
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>576</width>
+     <width>677</width>
      <height>22</height>
     </rect>
    </property>
@@ -40,8 +29,11 @@
     <property name="title">
      <string>File</string>
     </property>
+    <addaction name="actionNew_File"/>
     <addaction name="actionOpen"/>
+    <addaction name="separator"/>
     <addaction name="actionSave"/>
+    <addaction name="actionExport_as_Html_file"/>
     <addaction name="actionExport_as_PDF"/>
     <addaction name="separator"/>
     <addaction name="actionQuit"/>
@@ -123,9 +115,12 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionNew_File"/>
    <addaction name="actionOpen"/>
+   <addaction name="separator"/>
    <addaction name="actionSave"/>
    <addaction name="actionExport_as_PDF"/>
+   <addaction name="actionExport_as_Html_file"/>
    <addaction name="separator"/>
    <addaction name="actionCopy"/>
    <addaction name="actionCut"/>
@@ -543,6 +538,24 @@
    </property>
    <property name="toolTip">
     <string>show zoom out on toolbar</string>
+   </property>
+  </action>
+  <action name="actionNew_File">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/images/NewFile.png</normaloff>:/images/NewFile.png</iconset>
+   </property>
+   <property name="text">
+    <string>New File</string>
+   </property>
+  </action>
+  <action name="actionExport_as_Html_file">
+   <property name="icon">
+    <iconset resource="icons.qrc">
+     <normaloff>:/images/html.png</normaloff>:/images/html.png</iconset>
+   </property>
+   <property name="text">
+    <string>Export as Html file</string>
    </property>
   </action>
  </widget>

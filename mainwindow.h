@@ -3,6 +3,7 @@
 
 #include "ui_mainwindow.h"
 #include "settingsinfodialog.h"
+#include "document.h"
 
 #include <QMainWindow>
 #include <QApplication>
@@ -20,6 +21,10 @@
 #include <QTextCursor>
 #include <QList>
 
+#include <QTabWidget>
+#include <QTextEdit>
+#include <QFileInfo>
+
 
 QT_BEGIN_NAMESPACE
 namespace Ui {
@@ -36,23 +41,38 @@ public:
     QSize sizeHint() const;
     ~MainWindow();
 
-    void saveTextToFile(QString const &filePath, QString const &  text , bool toPDF = false);
+
+
+    enum class enExportFileType{ TxtExport = 0, PdfExport = 1, HtmlExport = 2, RtfExport = 3};
+
+    enum class enInputFileType{  TxtInput = 0 , HtmlInput = 1};
+
+    void saveTextToFile(QString const &filePath, QString const &  text , enExportFileType ExportType = enExportFileType::TxtExport);
 
     QString readContentFromTextFile(QString const &filePath);
 
     void init();
 
+
+    // automatic color for visible text/cursor (different bgs)
+
+    QString GetCursorColorName();
+
+    QColor GetTextColor();
+
     void setupSignalSlotsConnections(void);
 
-    void updateTextEditWrapMode(void);
-
     void updatePdfExportFormatSetings(QPrinter &printer);
+
+    void newFileAction(void);
 
     void openFileAction(void);
 
     void saveFileAction(void);
 
     void saveAsPdfAction(void);
+
+    void saveAsHtmlAction(void);
 
     void quitAction(void);
 
@@ -90,6 +110,19 @@ public:
 
     void writeCursorPosition(void);
 
+    void changeTab(void);
+
+    void closeTab(void);
+
+    void acceptSettingsClicked();  // signal custom quand le bouton Accept est cliqué
+
+    void NewTab(QString FileName, enInputFileType FileType, QString text = "");
+
+    QString GetCurrentTabName();
+
+    //QString GetNewTabName(QString fileName);
+
+    enInputFileType GetInputFileType(QFileInfo FileInfo);
 
 private slots:
 
@@ -132,16 +165,36 @@ private slots:
 
     void on_actionzoom_out_triggered();
 
+    void on_TabWidget_currentChanged(int index);
+
+    void on_TabWidget_TabCloseRequested(int index);
+
+    void on_SettingsAccepted();
+
+    void updateCurrentEditStyle();
+
+    void UpdteCurrentDocumentSettings();
+
+    void SetCurrentDocumentSettings(SettingsInfoDialog::Settings CurrentSetings_);
+
+
+
 private:
+
     Ui::MainWindow *ui;
 
-    //QList<QTextEdit*> textEditList;
+    QList<QTextEdit*> textEditList;
+
+    QList<document*> DocList;
+
+    QTabWidget *TabWidget;
+
+    int CurrentTabIdx;
 
     SettingsInfoDialog * settings;
 
-    QString pdfExportForamt;
+    SettingsInfoDialog::Settings CurrentSettings;
 
-    bool noWrapLines;
 
     // cursor position
 
@@ -153,14 +206,14 @@ private:
 
     QString defaultStyleSheet, transparentStyleSheet;
 
-    bool flag_transparent,
-        flag_showToolBar,
-        flag_showMenuBar,
-        flag_showStatusBar;
+    QFont defaultFont;
 
-    double opacity;
+    bool    flag_transparent,
+            flag_showToolBar,
+            flag_showMenuBar,
+            flag_showStatusBar;
 
-    QColor bagroundColorInTranparentMode;
+
 
 };
 #endif // MAINWINDOW_H

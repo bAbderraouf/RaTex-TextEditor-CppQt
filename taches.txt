@@ -1,0 +1,10 @@
+taches  a rajouter
+
+*1- keep font & colors in pdf file
+*2-select bg color for transparent mode
+*3-zoom
+*4-font only for next text or selected text
+5-ctrl+z for save
+6-save before quit
+7-onglet new file
+*8-add toolbar custumised

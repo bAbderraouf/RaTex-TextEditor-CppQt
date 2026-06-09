@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
     MainWindow w;
 
     w.adjustSize();
-    w.setWindowTitle("RaText");
+    w.setWindowTitle("RaText Rich Text Editor");
     w.setWindowIcon(QIcon(":images/RaText.png"));
     w.show();
 
